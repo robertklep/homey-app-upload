@@ -1,0 +1,13 @@
+{
+  "name": "homey-app-upload-lib",
+  "version": "1.0.0",
+  "description": "Homey App Upload library",
+  "main": "index.js",
+  "author": "Robert Klep <robert@klep.name>",
+  "license": "MIT",
+  "dependencies": {
+    "athom-api": "^2.0.96",
+    "chmodr": "^1.0.2",
+    "tar-pack": "^3.4.1"
+  }
+}
