@@ -2,16 +2,17 @@ homey-app-upload – Homey App Upload
 
 Usage:
   homey-app-upload [options] upload
+  homey-app-upload [options] watch <file>
 
 Options:
   -h --help                Show this screen
   -v --version             Show version
   -I --incremental=<file>  Allow incremental updates, using `file` for metadata
-  -H --host=<host>         Homey hostname/IP-address
-  -P --port=<port>         TCP port for upload server [default: 5481]
+  -U --url=<url>           Homey Uploader Server URL
   -N --no-restart          Don't restart app after changes have been uploaded
+  -V --verbose             More verbose output
 
 Instead of passing -H/--host/-P/--port, you can set an environment variable
-HOMEY_APP_UPLOAD_SERVER that contains the URL for the upload server:
+HOMEY_APP_UPLOAD_URL that contains the URL for the upload server:
 
-    export HOMEY_APP_UPLOAD_SERVER=http://192.168.1.100:5481/
+    export HOMEY_APP_UPLOAD_URL=http://192.168.1.100:5481/
