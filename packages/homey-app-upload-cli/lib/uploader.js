@@ -1,9 +1,10 @@
-const url      = require('url');
-const fs       = require('fs');
-const http     = require('http');
-const chokidar = require('chokidar');
-const path     = require('path');
-const { pack } = require('tar-pack');
+const url             = require('url');
+const fs              = require('fs');
+const http            = require('http');
+const chokidar        = require('chokidar');
+const { createGzip }  = require('zlib');
+const tar             = require('tar-fs');
+const walk            = require('ignore-walk');
 
 module.exports = class Uploader {
 
@@ -50,30 +51,10 @@ module.exports = class Uploader {
   }
 
   upload() {
-    // Track the number of changed files (for incremental updates; if no changes
-    // were found, we don't restart the app).
-    let numChanges = 0;
-
-    // Connect to HTTP server.
-    let req = http.request({
-      method   : 'post',
-      path     : '/app-upload',
-      hostname : this.opts.hostname,
-      port     : this.opts.port,
-    }, res => {
-      res.on('data', () => {}).on('end', () => {
-        this.log(`upload completed (${ numChanges } files uploaded), status:`, res.statusCode === 200 ? 'OK' : 'FAILED');
-        if (res.statusCode === 200 && ! this.opts['--no-restart'] && numChanges) {
-          this.restart();
-        }
-      });
-    }).on('error', err => {
-      this.log('HTTP request error', err)
-    });
-
     // Check if we should perform an incremental update.
-    let inc   = this.opts['--incremental'];
-    let mtime = null;
+    let inc     = this.opts['--incremental'];
+    let mtime   = null;
+    let entries = [ process.cwd() ];
     if (inc) {
       // Create incremental metadata file if it doesn't already exist.
       if (! fs.existsSync(inc)) {
@@ -83,42 +64,49 @@ module.exports = class Uploader {
       // Grab mtime.
       mtime = fs.statSync(inc).mtimeMs;
 
+      // Find files that have changed since last upload, taking into account
+      // files that should be ignored.
+      entries = walk.sync({
+        path         : process.cwd(),
+        ignoreFiles  : [ '.gitignore', '.homeyignore' ],
+        includeEmpty : false,
+        follow       : true
+      }).filter(entry => {
+        let stat = fs.statSync(entry);
+        return stat.isFile() && stat.mtimeMs > mtime;
+      });
+
       // Update mtime for the next time.
       this.writeIncrementalMetadata(inc);
     }
 
-    // Create TAR stream and pipe it to the HTTP request.
-    pack(process.cwd(), {
-      fromBase      : true,
-      noProprietary : true,
-      ignoreFiles   : [ '.gitignore', '.homeyignore' ],
-      filter        : entry => {
-        let rel = path.relative(process.cwd(), entry.path);
+    // Anything to do?
+    if (! entries.length) {
+      return this.log('no changes since last update');
+    }
+    this.debug('uploading:', entries);
 
-        // Don't upload `env.json`
-        if (entry.basename === 'env.json') return false;
-
-        // Don't upload incremental update metadata file.
-        if (entry.basename === inc) return false;
-
-        // If `mtime` is set, this is an incremental update, in which
-        // case we only select files that have been modified since then.
-        if (mtime !== null) {
-          let entryMtime = fs.statSync(entry.path).mtimeMs;
-          let hasChanged = entryMtime > mtime;
-          if (hasChanged) {
-            this.debug('uploading:', rel);
-            numChanges++;
-          }
-          return hasChanged;
+    // Connect to HTTP server.
+    let req = http.request({
+      method   : 'post',
+      path     : '/app-upload',
+      hostname : this.opts.hostname,
+      port     : this.opts.port,
+    }, res => {
+      res.on('data', () => {}).on('end', () => {
+        this.log(`upload completed (${ entries.length } files uploaded), status:`, res.statusCode === 200 ? 'OK' : 'FAILED');
+        if (res.statusCode === 200 && ! this.opts['--no-restart']) {
+          this.restart();
         }
-        this.debug('uploading:', rel);
+      });
+    }).on('error', err => {
+      this.log('HTTP request error', err)
+    });
 
-        // Accept file.
-        numChanges++;
-        return true;
-      }
-    }).pipe(req);
+    // Create TAR stream and pipe it to the HTTP request.
+    tar.pack(process.cwd(), { entries }).on('error', err => {
+      this.log('tar error', err);
+    }).pipe(createGzip({ level : 9 })).pipe(req);
   }
 
   restart() {
