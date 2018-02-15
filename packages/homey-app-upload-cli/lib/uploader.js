@@ -118,8 +118,10 @@ module.exports = class Uploader {
   }
 
   writeIncrementalMetadata(path, timestamp) {
-    // Write (empty) file.
-    fs.writeFileSync(path, '');
+    // Write (empty) file if it doesn't already exist.
+    if (! fs.existsSync(path)) {
+      fs.writeFileSync(path, '');
+    }
 
     // Update file times.
     if (isNaN(timestamp)) {
