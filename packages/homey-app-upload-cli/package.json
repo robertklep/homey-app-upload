@@ -12,6 +12,7 @@
     "docopt": "^0.6.2",
     "gitignore-parser": "0.0.2",
     "ignore-walk": "^3.0.1",
+    "ospath": "^1.2.2",
     "tar-fs": "^1.16.0"
   }
 }

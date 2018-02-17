@@ -2,13 +2,12 @@ homey-app-upload – Homey App Upload
 
 Usage:
   homey-app-upload [options] upload
-  homey-app-upload [options] watch <file>
 
 Options:
   -h --help                Show this screen
   -v --version             Show version
   -I --incremental=<file>  Allow incremental updates, using `file` for metadata
-  -U --url=<url>           Homey Uploader Server URL
+  -U --url=<url>           Homey Uploader Server URL {{ homeyUrl }}
   -N --no-restart          Don't restart app after changes have been uploaded
   -V --verbose             More verbose output
 
