@@ -31,10 +31,11 @@ module.exports = class Uploader {
     if (this.opts['upload']) {
       this.upload();
     }
-
   }
 
   watch() {
+    return console.error('not implemented yet');
+
     let file = this.opts['<file>'];
 
     // Make sure watch file exists.
@@ -51,18 +52,21 @@ module.exports = class Uploader {
   }
 
   upload() {
+    let isDryRun = this.opts['--dry-run'];
+
     // Check if we should perform an incremental update.
-    let inc     = this.opts['--incremental'];
-    let mtime   = null;
-    let entries = [ process.cwd() ];
-    if (inc) {
+    let incremental = this.opts['--incremental'];
+    let entries     = [ process.cwd() ];
+    if (incremental) {
+      let incFile = this.opts['--incremental-file'];
+
       // Create incremental metadata file if it doesn't already exist.
-      if (! fs.existsSync(inc)) {
-        this.writeIncrementalMetadata(inc, 0);
+      if (! fs.existsSync(incFile)) {
+        this.writeIncrementalMetadata(incFile, 0);
       }
 
       // Grab mtime.
-      mtime = fs.statSync(inc).mtimeMs;
+      let mtime = fs.statSync(incFile).mtimeMs;
 
       // Find files that have changed since last upload, taking into account
       // files that should be ignored.
@@ -76,14 +80,22 @@ module.exports = class Uploader {
         return stat.isFile() && stat.mtimeMs > mtime;
       });
 
-      // Update mtime for the next time.
-      this.writeIncrementalMetadata(inc);
+      // Update mtime for the next time (unless this is a dry run).
+      if (! isDryRun) {
+        this.writeIncrementalMetadata(incFile);
+      }
     }
 
     // Anything to do?
     if (! entries.length) {
       return this.log('no changes since last update');
     }
+
+    // Dry run?
+    if (isDryRun) {
+      return console.log(entries.join('\n'));
+    }
+
     this.debug('uploading:', entries);
 
     // Connect to HTTP server.

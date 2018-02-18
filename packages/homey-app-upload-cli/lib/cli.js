@@ -8,13 +8,16 @@ const Uploader   = require('./uploader');
 let docoptFile = fs.readFileSync(path.join(__dirname, 'docopt.txt'), 'utf8');
 
 // Try to retrieve Homey settings.
+let homeyUrl = '';
 try {
   let settings = require(path.join(ospath.data(), 'com.athom.athom-cli', 'settings.json'));
-  let homeyUrl = settings.homey.localUrl.replace(/:\d+$/, '');
-  docoptFile = docoptFile.replace('{{ homeyUrl }}', `[default: ${ homeyUrl }]`);
+  homeyUrl = `[default: ${ settings.homey.localUrl.replace(/:\d+$/, ':5481') }]`;
 } catch(e) {
-  docoptFile = docoptFile.replace('{{ homeyUrl }}', '');
 }
+docoptFile = docoptFile.replace('{{ homeyUrl }}', homeyUrl);
+
+// Default location for incremental metadata file.
+docoptFile = docoptFile.replace('{{ incFile }}', path.join(ospath.home(), '.homey-app-upload-inc'));
 
 // Parse command line options.
 let opts = docopt(docoptFile, { version : require('../package').version });

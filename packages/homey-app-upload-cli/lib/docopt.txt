@@ -4,14 +4,16 @@ Usage:
   homey-app-upload [options] upload
 
 Options:
-  -h --help                Show this screen
-  -v --version             Show version
-  -I --incremental=<file>  Allow incremental updates, using `file` for metadata
-  -U --url=<url>           Homey Uploader Server URL {{ homeyUrl }}
-  -N --no-restart          Don't restart app after changes have been uploaded
-  -V --verbose             More verbose output
+  -h --help                     Show this screen
+  --version                     Show version
+  -i --incremental              Perform incremental updates
+  -I --incremental-file=<file>  File to use for incremental update metadata [default: {{ incFile }}]
+  -u --url=<url>                Homey Uploader Server URL {{ homeyUrl }}
+  -n --no-restart               Don't restart app after changes have been uploaded
+  --dry-run                     Just show which files would have been uploaded
+  -v --verbose                  More verbose output
 
-Instead of passing -H/--host/-P/--port, you can set an environment variable
-HOMEY_APP_UPLOAD_URL that contains the URL for the upload server:
+Instead of passing -u, you can set an environment variable HOMEY_APP_UPLOAD_URL
+that contains the URL for the upload server:
 
     export HOMEY_APP_UPLOAD_URL=http://192.168.1.100:5481/

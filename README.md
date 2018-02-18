@@ -27,17 +27,18 @@ const HomeyAppUpload = require('homey-app-upload-lib');
 ...
 
 class YourHomeyApp extends Homey.App {
-    onInit() {
-        HomeyAppUpload(this.manifest);
-        ...
-    }
+  onInit() {
+    HomeyAppUpload(this.manifest);
     ...
+  }
+  ...
 }
 ```
 
 Remarks:
 * The library requires the `homey:manager:api` permission, and will refuse to run when it isn't set.
 * The library should not be used in published apps.
+* At the moment, only one app can have an uploader active.
 
 ### CLI
 
