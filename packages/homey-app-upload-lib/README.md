@@ -74,7 +74,7 @@ that contains the URL for the upload server:
 
 First, run `athom project --run` to upload the app to Homey initially. Keep it running, and open another window/terminal from which to run (incremental) updates using this CLI tool.
 
-By default, the CLI tool uploads the entire app.
+By default, the CLI tool uploads the entire app. It will take into account `.gitignore` and `.homeyignore` files to determine which files to ignore.
 
 ##### Incremental updates
 
