@@ -95,7 +95,6 @@ module.exports = class Uploader {
     if (isDryRun) {
       return console.log(entries.join('\n'));
     }
-
     this.debug('uploading:', entries);
 
     // Connect to HTTP server.
@@ -116,7 +115,7 @@ module.exports = class Uploader {
     });
 
     // Create TAR stream and pipe it to the HTTP request.
-    tar.pack(process.cwd(), { entries }).on('error', err => {
+    tar.pack(process.cwd(), { entries : Object.assign([], entries) }).on('error', err => {
       this.log('tar error', err);
     }).pipe(createGzip({ level : 9 })).pipe(req);
   }
