@@ -52,38 +52,39 @@ module.exports = class Uploader {
   }
 
   upload() {
-    let isDryRun = this.opts['--dry-run'];
-
-    // Check if we should perform an incremental update.
+    let isDryRun    = this.opts['--dry-run'];
     let incremental = this.opts['--incremental'];
-    let entries     = [ process.cwd() ];
-    if (incremental) {
-      let incFile = this.opts['--incremental-file'];
+    let incFile     = this.opts['--incremental-file'];
+    let mtime       = 0;
 
-      // Create incremental metadata file if it doesn't already exist.
+    // Create incremental metadata file if it doesn't already exist,
+    // and grab its last-modified time.
+    if (incremental) {
       if (! fs.existsSync(incFile)) {
         this.writeIncrementalMetadata(incFile, 0);
       }
+      mtime = fs.statSync(incFile).mtimeMs;
+    }
 
-      // Grab mtime.
-      let mtime = fs.statSync(incFile).mtimeMs;
+    // Find files to upload.
+    let entries = walk.sync({
+      path         : process.cwd(),
+      ignoreFiles  : [ '.gitignore', '.homeyignore' ],
+      includeEmpty : false,
+      follow       : true
+    }).filter(entry => {
+      // Shortcut.
+      if (! incremental) return true;
 
-      // Find files that have changed since last upload, taking into account
-      // files that should be ignored.
-      entries = walk.sync({
-        path         : process.cwd(),
-        ignoreFiles  : [ '.gitignore', '.homeyignore' ],
-        includeEmpty : false,
-        follow       : true
-      }).filter(entry => {
-        let stat = fs.statSync(entry);
-        return stat.isFile() && stat.mtimeMs > mtime;
-      });
+      // For incremental updates, we compare the last-modified time
+      // to the one of the incremental metadata file.
+      let stat = fs.statSync(entry);
+      return stat.isFile() && stat.mtimeMs > mtime;
+    });
 
-      // Update mtime for the next time (unless this is a dry run).
-      if (! isDryRun) {
-        this.writeIncrementalMetadata(incFile);
-      }
+    // Update mtime for the next time (unless this is a dry run).
+    if (incremental && ! isDryRun) {
+      this.writeIncrementalMetadata(incFile);
     }
 
     // Anything to do?
