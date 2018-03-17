@@ -78,7 +78,12 @@ module.exports = class Uploader {
         console.error(`
 NOTICE: 'app.json' has changed, which will require
         a full re-upload using 'athom app run' for
-        all changes to be applied.\n`);
+        all changes to be applied.
+
+        If a device's capabilities have changed,
+        you may also need to re-pair the device.
+
+`);
       }
 
       // Shortcut.
