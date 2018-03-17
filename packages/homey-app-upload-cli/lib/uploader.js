@@ -73,6 +73,14 @@ module.exports = class Uploader {
       includeEmpty : false,
       follow       : true
     }).filter(entry => {
+      // Changed to `app.json` require a full re-upload using the `athom-cli` tool.
+      if (entry.endsWith('app.json')) {
+        console.error(`
+NOTICE: 'app.json' has changed, which will require
+        a full re-upload using 'athom app run' for
+        all changes to be applied.\n`);
+      }
+
       // Shortcut.
       if (! incremental) return true;
 
