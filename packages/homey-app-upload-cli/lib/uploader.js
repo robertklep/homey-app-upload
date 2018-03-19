@@ -73,8 +73,16 @@ module.exports = class Uploader {
       includeEmpty : false,
       follow       : true
     }).filter(entry => {
+      // Shortcut.
+      if (! incremental) return true;
+
+      // For incremental updates, we compare the last-modified time
+      // to the one of the incremental metadata file.
+      let stat       = fs.statSync(entry);
+      let hasChanged = stat.isFile() && stat.mtimeMs > mtime;
+
       // Changed to `app.json` require a full re-upload using the `athom-cli` tool.
-      if (entry.endsWith('app.json')) {
+      if (hasChanged && entry.endsWith('app.json')) {
         console.error(`
 NOTICE: 'app.json' has changed, which will require
         a full re-upload using 'athom app run' for
@@ -85,14 +93,7 @@ NOTICE: 'app.json' has changed, which will require
 
 `);
       }
-
-      // Shortcut.
-      if (! incremental) return true;
-
-      // For incremental updates, we compare the last-modified time
-      // to the one of the incremental metadata file.
-      let stat = fs.statSync(entry);
-      return stat.isFile() && stat.mtimeMs > mtime;
+      return hasChanged;
     });
 
     // Update mtime for the next time (unless this is a dry run).
