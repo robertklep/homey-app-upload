@@ -1,6 +1,6 @@
 {
   "name": "homey-app-upload-cli",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Homey App Upload command line interface",
   "bin": {
     "homey-app-upload": "./bin/homey-app-upload"
