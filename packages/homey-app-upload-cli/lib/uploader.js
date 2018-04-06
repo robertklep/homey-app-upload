@@ -14,7 +14,7 @@ module.exports = class Uploader {
     this.debug = this.opts['--verbose'] ? this.log : () => {};
 
     // Parse server url.
-    let { hostname, port } = url.parse(this.opts['--url'] || process.env['HOMEY_APP_UPLOAD_URL'] || '');
+    let { hostname, port } = url.parse(process.env['HOMEY_APP_UPLOAD_URL'] || this.opts['--url'] || '');
     port = port || 5481;
     if (! hostname || ! port) {
       return Error('invalid server URL');
